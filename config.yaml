@@ -1,0 +1,16 @@
+imu:
+  noise:  
+    gyro_density: 0.001        # rad/s/√Hz (angular random walk)
+    accel_density: 0.01        # m/s²/√Hz (velocity random walk)
+    gyro_bias_instability: 0.0001  # rad/s²/√Hz (bias random walk)
+    accel_bias_instability: 0.0002 # m/s³/√Hz (bias random walk)
+  frequency: 200.0             # Hz
+
+
+camera:
+  extrinsics:
+    # Extrinsic calibration (IMU-to-camera)
+    rotation: [0.707, 0.0, 0.707, 0.0]  # Quaternion (w, x, y, z)
+    translation: [0.1, 0.0, 0.05]       # Position (x, y, z) in meters
+    N_MAX: 3
+  
