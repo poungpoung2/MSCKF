@@ -3,37 +3,51 @@ project(msckf)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  std_msgs
+  nav_msgs
   sensor_msgs
+  geometry_msgs
+  tf
+  tf_conversions
   eigen_conversions
-  rostest
+  message_generation
 )
 
 find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp sensor_msgs
+  LIBRARIES msckf
+  CATKIN_DEPENDS roscpp std_msgs nav_msgs sensor_msgs geometry_msgs tf tf_conversions eigen_conversions
+  DEPENDS EIGEN3
 )
 
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${Eigen3_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_executable(msckf_node
-  src/msckf_node.cpp
+add_library(msckf
   src/msckf.cpp
+  src/msckf_node.cpp
 )
-target_link_libraries(msckf_node ${catkin_LIBRsARIES})
 
-if(CATKIN_ENABLE_TESTING)
-  catkin_add_gtest(test_msckf test/test_msckf.cpp src/msckf.cpp)
-  target_link_libraries(test_msckf
-    ${catkin_LIBRARIES}
-    ${GTEST_LIBRARIES}
-  )
-endif()
+target_link_libraries(msckf
+  ${catkin_LIBRARIES}
+)
+
+
+add_executable(msckf_main
+  src/msckf_main.cpp
+)
+
+target_link_libraries(msckf_main
+  msckf
+  ${catkin_LIBRARIES}
+)
+
+## Install
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

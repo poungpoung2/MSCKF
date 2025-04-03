@@ -1,8 +1,8 @@
 <launch>
 
     <!--- Run Rviz-->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find MSCKF)/launch/test.rviz" />
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find msckf)/launch/test.rviz" />
     
-    <node pkg="MSCKF" type="msckf_main" name="msckf_main" output="screen"/>
+    <node pkg="msckf" type="msckf_main" name="msckf_main" output="screen"/>
 
 </launch>

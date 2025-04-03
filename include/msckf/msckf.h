@@ -20,62 +20,47 @@
 
 class TestMSCKF;
 
-namespace MSCKF_MONO {
-class MSCKF {
-   public:
-    void initialize() {
-        g(0, 0, -9.80665);
-        w_g(0.0, 0.0, 7.292115e-5);
-        F(Eigen::Matrix<double, 15, 15>::Zero());
-        G(Eigen::Matrix<double, 15, 12>::Zero());
-        P_II(Eigen::Matrix<double, 15, 15>::Identity());
-        P_CC(Eigen::MatrixXd(0, 0));
-        P_IC(Eigen::MatrixXd(15, 0));
-        Phi(Eigen::Matrix<double, 15, 15>::Identity());
+namespace MSCKF_MONO
+{
+    typedef long int state_id;
+    class MSCKF
+    {
+    public:
+        MSCKF(const ros::NodeHandle &nh, const ros::NodeHandle &pnh) : isInitialized(false),
+                                                                       state_cov(Eigen::MatrixXd::Zero(21, 21)),
+                                                                       noise_cov(Eigen::Matrix<double, 12, 12>::Zero())
+        {
+            loadParams(nh);
+        }
 
-        
-    }
+        ~MSCKF() {}
+        static Eigen::Vector3d gravity;
 
-    MSCKF(const ros::NodeHandle &nh, const ros::NodeHandle &pnh) {
-        initialize();
+        // private:
+        IMU::IMUState imu_state;
+        CAMERA::CAMState cam_state;
 
-        imu_state = IMU::IMUState();
-        imu_state.loadParams(nh);
-        imu_state.timestamp = ros::Time::now();
+        bool isInitialized;
 
-        cam_state = CAMERA::CameraState();
-        cam_state.loadParams(nh);
-    }
+        std::map<state_id, CAMERA::CAMState> cam_states;
+        std::vector<sensor_msgs::Imu> imu_msg_buffer;
 
-    ~Msckf() {}
+        Eigen::Matrix<double, 21, 21> F; // System Jacobian
+        Eigen::Matrix<double, 21, 12> G; // Noise Jacobian
 
-    std::pair<Eigen::Vector3d, Eigen::Vector3d> prcoessMsg(const sensor_msgs::Imu::ConstPtr &imuMsg);
-    void propagateState(const sensor_msgs::Imu::ConstPtr &imuMsg);
-    void propagateCovariance(double dt);
+        Eigen::MatrixXd state_cov; // IMU covariance
+        Eigen::Matrix<double, 12, 12> noise_cov;
 
-    // private:
-    IMU::IMUState imu_state;
-    CAMERA::CameraState cam_state;
-
-    std::map<state_id, CAMERA::CAM_State> cam_states;
-
-    const Eigen::Vector3d w_g;  // Angular velocty due to gravity
-    const Eigen::Vector3d g;    // Gravity
-
-    Eigen::Matrix<double, 15, 15> F;  // System Jacobian
-    Eigen::Matrix<double, 15, 12> G;  // Noise Jacobian
-
-    Eigen::MatrixXd state_cov;  // IMU covariance
-    Eigen::Matrix<double, 12, 12> noise_cov;
-
-    void rk5Step(const Eigen::Vector3d &w_I, const Eigen::Vector3d &a_I, double dt);
-    void computeJacobians(Eigen::Matrix3d &I_R_G, Eigen::Vector3d &gyro, Eigen::Vector3d &acc);
-    void propagateIMU(double dt, const Eigen::Vector3d &gyro_m, const Eigen::Vector3d &acc_m);
-    void applyConstraints(const double dt, const Eigen::Matrix3d &I_R_G, const Eigen::Matrix<double, 21, 21> &Phi);
-    void propagateCovariance(const double dt, const Eigen::Matrix<double, 21, 21> &Phi);
-    void propagateState(const sensor_msgs::Imu::ConstPtr &imuMsg);
-    void stateAugmentation();
-};
-}  // namespace MSCKF_MONO
+        void loadParams(const ros::NodeHandle &nh);
+        void initializeGravityAndBias();
+        void rk5Step(const double dt, const Eigen::Vector3d &gyro, const Eigen::Vector3d &acc);
+        void computeJacobians(Eigen::Matrix3d &I_R_G, Eigen::Vector3d &gyro, Eigen::Vector3d &acc);
+        void propagateIMU(double dt, const Eigen::Vector3d &gyro_m, const Eigen::Vector3d &acc_m);
+        void applyConstraints(const double dt, const Eigen::Matrix3d &I_R_G, Eigen::Matrix<double, 21, 21> &Phi);
+        void propagateCovariance(const double dt, Eigen::Matrix<double, 21, 21> &Phi);
+        void propagateState(const sensor_msgs::Imu::ConstPtr &imuMsg);
+        void stateAugmentation();
+    };
+} // namespace MSCKF_MONO
 
 #endif

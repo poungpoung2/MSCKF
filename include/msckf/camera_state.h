@@ -13,9 +13,8 @@
 #include "msckf/utils.h"
 
 namespace CAMERA {
+typedef long long int state_id;
 struct CAMState {
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
     // unique cam state id
     state_id id;
 
